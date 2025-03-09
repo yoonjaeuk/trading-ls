@@ -1,5 +1,6 @@
 from src.config.crypto_wallet import CRYPTO_WALLET
 from src.core.xa_session import XASession
+from src.core.xa_query import XAQuery
 
 class Main:
     def __init__(self):
@@ -13,6 +14,16 @@ class Main:
         #account_number 
         account_num = xa_session.get_account_list()
         print(account_num)
+
+        xa_query = XAQuery()
+        account_dict = xa_query.request_balance(account_num=account_num[1], password=crypto_wallet["acc_pwd"])
+        deposit = xa_query.request_deposit(account_num=account_num[1], password=crypto_wallet["acc_pwd"])
+        out_standing = xa_query.request_out_standing(account_num=account_num[1], password=crypto_wallet["acc_pwd"])
+
+        print(out_standing)
+
+        # print(deposit)
+
 
 
 if __name__ == "__main__":
