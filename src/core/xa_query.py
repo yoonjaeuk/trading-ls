@@ -4,6 +4,9 @@ import pythoncom
 import sys
 
 
+#기본적으로 XingAPi는 비동기 이벤트 기반으로 동작하기 때문에 서버에 데이터 요청과 응답을 분리한 로직이 유리함(이벤트 기반 프로그래밍)
+#책임 분리 원칙(각 클래스가 자신의 역할에만 집중하게)
+
 class XAQueryReceiver: #XASession에서 서버에 요청한 데이터의 결과값을 수신함
     def __init__(self):
         self.parent = None
@@ -44,11 +47,9 @@ class XAQueryReceiver: #XASession에서 서버에 요청한 데이터의 결과�
 
             self.parent.accout_dict = account_dict
 
-
         
         elif event == "COSOQ02701":
             deposit = self.parent.query.GetFieldData("COSOQ02701OutBlock3", "FcurrOrdAbleAmt", 0)
-        
             self.parent.deposit = deposit
         
         elif event == "COSAQ00102":
@@ -90,12 +91,13 @@ class XAQueryReceiver: #XASession에서 서버에 요청한 데이터의 결과�
                 item.append(data)
             print(dict(zip(G3101_OUT_BLOCK_NAME, item)))
 
-class XAQuery:
+
+
+class XAQuery:  #서버에 데이터 요청
     def __init__(self):
         self.deposit = 0
         self.account_dict = dict()
         self.out_standing = dict()
-
         self.response = False
         self.query = win32com.client.DispatchWithEvents("XA_DataSet.XAQuery", XAQueryReceiver)
         self.query.parent = self

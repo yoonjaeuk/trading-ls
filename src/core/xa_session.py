@@ -2,15 +2,15 @@ import win32com.client
 import pythoncom
 import sys
 
-
-class XASessionReceiver: #XASession에서 서버에 요청한 데이터의 결과값을 수신함
+#XASessionReceiver는 이벤트 핸들러 느낌
+class XASessionReceiver: #XASession에서 서버에 요청한 데이터의 결과값을 수신함(로그인 요청을 보내면 API는 비동기 방식으로 동작하기 때문에)
     def __init__(self):
-        self.parent = None
+        self.parent = None 
     
     def OnLogin(self, code, msg):
         if code == "0000":
             print("로그인 성공")
-            self.parent.response = True
+            self.parent.response = True #XASessionReceiver에서 XASession을 직접적으로 참조할 방법이 없음 self.parent로 접근
         
         else:
             print(f"로그인 실패 : {code} | {msg}")
@@ -26,7 +26,7 @@ class XASession:
         self.response = False
         self.login_server = self.set_server(login_server=login_server)
         self.session = win32com.client.DispatchWithEvents("XA_Session.XASession", XASessionReceiver)
-        self.session.parent = self
+        self.session.parent = self #XA_Session.XASession 객체에 parent 속성을 추가하고 현재 XASession 인스턴스를 저장(XASessionReceiver에서 접근 가능)
 
     @staticmethod
     def set_server(login_server):
@@ -54,7 +54,7 @@ class XASession:
       
         self.session.Login(_id, _pw, _cert, 0, False)
         
-        while not self.response:
+        while not self.response:  #로그인이 완료되면 로그아웃을 할 때까지 XingAPI가 내부적으로 세션 유지
             pythoncom.PumpWaitingMessages()
         
         # print("대기 종료")
@@ -67,5 +67,4 @@ class XASession:
             account_list.append(account_num)
         return account_list
 
-# if __name__ == "__main__":
    
