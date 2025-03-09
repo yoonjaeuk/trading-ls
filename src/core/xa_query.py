@@ -81,7 +81,14 @@ class XAQueryReceiver: #XASession에서 서버에 요청한 데이터의 결과�
                 out_standing[code] = dict(zip(OUT_STANDING_OUT_BLOCK_3_NAME, item))
 
             self.parent.out_standing = out_standing
-
+       
+        elif event == "g3101":
+            item = list()
+            for idx in range(len(G3101_OUT_BLOCK_CODE)):
+                out_block_code = G3101_OUT_BLOCK_CODE[idx]
+                data = self.parent.query.GetFieldData("g3101OutBlock", out_block_code, 0)
+                item.append(data)
+            print(dict(zip(G3101_OUT_BLOCK_NAME, item)))
 
 class XAQuery:
     def __init__(self):
@@ -138,5 +145,15 @@ class XAQuery:
        self.request()
 
        return self.out_standing
+    
+    def g3101(self, exchange_code, symbol):  #exchange = 거래소 코드, symbol = 종목코드
+       
+       self.query.ResFileName = "C:/LS_SEC/xingAPI/Res/g3101.res"
+       datas = ["R", exchange_code + symbol, exchange_code, symbol]
+
+       for idx in range(len(datas)):
+            self.query.SetFieldData("g3101InBlock", G3101_IN_BLOCK_CODE[idx], 0, datas[idx])
+        
+       self.request()
 
        

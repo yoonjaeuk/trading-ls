@@ -23,6 +23,9 @@ class Main:
         print(out_standing)
 
         # print(deposit)
+        
+        xa_query.g3101(exchange_code="82", symbol="TSLA")
+
 
 
 
