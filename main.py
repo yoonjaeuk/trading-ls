@@ -2,6 +2,7 @@ from src.config.crypto_wallet import CRYPTO_WALLET
 from src.core.xa_session import XASession
 from src.core.xa_query import XAQuery
 from src.core.xa_real import XAReal
+import pythoncom
 class Main:
     def __init__(self):
         #Settings
@@ -16,9 +17,9 @@ class Main:
         print(account_num)
 
         xa_query = XAQuery()
-        account_dict = xa_query.request_balance(account_num=account_num[1], password=crypto_wallet["acc_pwd"])
-        deposit = xa_query.request_deposit(account_num=account_num[1], password=crypto_wallet["acc_pwd"])
-        out_standing = xa_query.request_out_standing(account_num=account_num[1], password=crypto_wallet["acc_pwd"])
+        account_dict = xa_query.request_balance(account_num=account_num[0], password=crypto_wallet["acc_pwd"])
+        deposit = xa_query.request_deposit(account_num=account_num[0], password=crypto_wallet["acc_pwd"])
+        out_standing = xa_query.request_out_standing(account_num=account_num[0], password=crypto_wallet["acc_pwd"])
 
         print(out_standing)
 
@@ -26,10 +27,32 @@ class Main:
         
         xa_real = XAReal(account_dict = account_dict, out_standing = out_standing, deposit = deposit)
         symbol_list = ["TSLA", "AAPL", "AMZN"]
-        for symbol in symbol_list:
-            xa_real.GSC(exchange_code = "82", symbol = symbol)
+        # for symbol in symbol_list:
+            # xa_real.GSC(exchange_code = "82", symbol = symbol)
+            # xa_real.GSH(exchange_code = "82", symbol = symbol)
+        xa_real.ASN()
+
+        test_num = 0
+        origin_num = None
         
-        xa_real.loop()
+        while True:
+           if not xa_query.queue.empty():
+                data = xa_query.queue.get()
+
+                if "주문번호" in data[1].keys() and origin_num is None:
+                    origin_num = data[1]["주문번호"]
+
+            
+           if test_num == 1 and origin_num is not None:
+              test_num += 1
+              xa_query.send_order(account_num=account_num[0], password=crypto_wallet["acc_pwd"], order_type="취소", origin_num=origin_num, symbol="TRVI")
+
+           if test_num == 0:
+                test_num += 1
+                xa_query.send_order(account_num=account_num[0], password=crypto_wallet["acc_pwd"], symbol="TRVI", qty ="1", order_price="5.80")
+#self, account_num, password, order_type = "매수", origin_num = "", exchange_code ="82", symbol = "TSLA", qty ="0", order_price="", hoga_type = "00"
+           pythoncom.PumpWaitingMessages()
+
 
        
 

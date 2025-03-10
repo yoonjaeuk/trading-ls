@@ -16,7 +16,45 @@ class XARealReceiver:
                 item.append(data)
             
             self.parent.queue.put(["실시간체결", dict(zip(GSC_OUT_BLOCK_NAME, item))])
+        
+        elif event == "GSH":
+            item = list()
+            for idx in range(len(GSH_OUT_BLOCK_CODE)):
+                out_block_code = GSH_OUT_BLOCK_CODE[idx]
+                data = self.parent.real_dict["실시간호가"].GetFieldData("OutBlock", out_block_code)
+                item.append(data)
+            
+            self.parent.queue.put(["실시간호가", dict(zip(GSH_OUT_BLOCK_NAME, item))])
+        
+        elif event == "AS0":
+            item = list()
+            for idx in range(len(AS0_OUT_BLOCK_CODE)):
+                out_block_code = AS0_OUT_BLOCK_CODE[idx]
+                data = self.parent.real_dict["주문접수"].GetFieldData("OutBlock", out_block_code)
+                item.append(data)
+            
+            self.parent.queue.put(["주문접수", dict(zip(AS0_OUT_BLOCK_NAME, item))])
 
+        
+        elif event in ["AS1", "AS2", "AS3", "AS4"]:
+            if event == "AS1":
+                event_type = "주문체결"
+            elif event == "AS2":
+                event_type = "주문정정"
+            elif event == "AS3":
+                event_type = "주문취소"
+            elif event == "AS4":
+                event_type = "주문거부"
+            
+            item = list()
+            for idx in range(len(ASN_OUT_BLOCK_CODE)):
+                out_block_code = ASN_OUT_BLOCK_CODE[idx]
+                data = self.parent.real_dict[event_type].GetFieldData("OutBlock", out_block_code)
+                item.append(data)
+            
+            self.parent.queue.put([event_type, dict(zip(ASN_OUT_BLOCK_NAME, item))])
+
+            
 
 
 class XAReal:
@@ -38,12 +76,6 @@ class XAReal:
             item[header] = real
         return item
     
-    def loop(self):
-        while True:
-            if not self.queue.empty():
-                print(self.queue.get())
-
-            pythoncom.PumpWaitingMessages()
 
 
     def GSC(self, exchange_code, symbol):
@@ -52,3 +84,22 @@ class XAReal:
         real.SetFieldData("InBlock", "keysymbol", exchange_code + symbol)
         real.AdviseRealData()
         
+    def GSH(self, exchange_code, symbol):
+        real = self.real_dict["실시간호가"]
+        real.ResFileName = "C:/LS_SEC/xingAPI/Res/GSH.res"
+        real.SetFieldData("InBlock", "keysymbol", exchange_code + symbol)
+        real.AdviseRealData()    
+    
+    def ASN(self):
+        #해외주식부문 부분일괄등록
+        #ASO - 해외주식주문접수
+        #AS1 - 해외주식주문체결
+        #AS2 - 해외주식주문정정
+        #AS3 - 해외주식주문취소
+        #AS4 - 해외주식주문거부
+
+        headers = ["주문접수", "주문체결", "주문정정", "주문취소", "주문거부"]
+        for idx in range(len(headers)):
+            real = self.real_dict[headers[idx]]
+            real.ResFileName = f"C:/LS_SEC/xingAPI/Res/AS{idx}.res"
+            real.AdviseRealData()

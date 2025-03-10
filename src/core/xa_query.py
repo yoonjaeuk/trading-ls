@@ -1,6 +1,7 @@
 from src.config.menulist import *
 import win32com.client
 import pythoncom
+import queue
 import sys
 
 
@@ -90,6 +91,22 @@ class XAQueryReceiver: #XASession에서 서버에 요청한 데이터의 결과�
                 data = self.parent.query.GetFieldData("g3101OutBlock", out_block_code, 0)
                 item.append(data)
             print(dict(zip(G3101_OUT_BLOCK_NAME, item)))
+        
+        elif event == "COSAT00301":
+            item = list()
+            for idx in range(len(TRADE_OUT_BLOCK_1_CODE)):
+                out_block_code = TRADE_OUT_BLOCK_1_CODE[idx]
+                data = self.parent.query.GetFieldData("COSAT00301OutBlock1", out_block_code, 0)
+                item.append(data)
+            self.parent.queue.put(["주문1", dict(zip(TRADE_OUT_BLOCK_1_NAME, item))])
+            
+            item = list()
+            for idx in range(len(TRADE_OUT_BLOCK_2_CODE)):
+                out_block_code = TRADE_OUT_BLOCK_2_CODE[idx]
+                data = self.parent.query.GetFieldData("COSAT00301OutBlock2", out_block_code, 0)
+                item.append(data)
+            self.parent.queue.put(["주문2", dict(zip(TRADE_OUT_BLOCK_2_NAME, item))])
+
 
 
 
@@ -101,6 +118,7 @@ class XAQuery:  #서버에 데이터 요청
         self.response = False
         self.query = win32com.client.DispatchWithEvents("XA_DataSet.XAQuery", XAQueryReceiver)
         self.query.parent = self
+        self.queue = queue.Queue()
     
     def request(self, cont=False):
          res = self.query.Request(cont)
@@ -158,4 +176,22 @@ class XAQuery:  #서버에 데이터 요청
         
        self.request()
 
+    def send_order(self, account_num, password, order_type = "매수", origin_num = "", exchange_code ="82", symbol = "TSLA", qty ="0", order_price="", hoga_type = "00"):
+       self.query.ResFileName = "C:/LS_SEC/xingAPI/Res/COSAT00301.res"
        
+       if order_type == "매수":
+           order_type = "02"
+       elif order_type == "매도":
+           order_type = "01"
+       elif order_type == "취소":
+           order_type = "08"
+       else:
+           print("주문 타입을 확인해주세요")
+           return
+       
+       datas = ["", order_type, origin_num, account_num, password, exchange_code, symbol, qty, order_price, hoga_type, ""]
+
+       for idx in range(len(datas)):
+            self.query.SetFieldData("COSAT00301InBlock1", TRADE_IN_BLOCK_CODE[idx], 0, datas[idx])
+        
+       self.request()
