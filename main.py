@@ -1,7 +1,7 @@
 from src.config.crypto_wallet import CRYPTO_WALLET
 from src.core.xa_session import XASession
 from src.core.xa_query import XAQuery
-
+from src.core.xa_real import XAReal
 class Main:
     def __init__(self):
         #Settings
@@ -24,8 +24,14 @@ class Main:
 
         # print(deposit)
         
-        xa_query.g3101(exchange_code="82", symbol="TSLA")
+        xa_real = XAReal(account_dict = account_dict, out_standing = out_standing, deposit = deposit)
+        symbol_list = ["TSLA", "AAPL", "AMZN"]
+        for symbol in symbol_list:
+            xa_real.GSC(exchange_code = "82", symbol = symbol)
+        
+        xa_real.loop()
 
+       
 
 
 
