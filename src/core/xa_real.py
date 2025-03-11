@@ -58,14 +58,11 @@ class XARealReceiver:
 
 
 class XAReal:
-    def __init__(self, account_dict, out_standing, deposit):
+    def __init__(self):
         self.response = False
         self.queue = queue.Queue()
         self.real_dict = self.real_objects()  # 실시간 부분에서는 한가지 객체만으로 호가데이터, 체결데이터, 주문데이터 등 모든 것을 다 받을 수 없음(각 요청마다 객체를 생성해야됨 -> 각 객체를 하나의 dictionary안으로)
 
-        self.account_dict = account_dict
-        self.out_standing = out_standing
-        self.deposit = deposit
 
     def real_objects(self):
         item = dict()
@@ -75,8 +72,6 @@ class XAReal:
             real.parent = self
             item[header] = real
         return item
-    
-
 
     def GSC(self, exchange_code, symbol):
         real = self.real_dict["실시간체결"]
